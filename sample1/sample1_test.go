@@ -20,14 +20,26 @@ type Sample1 struct {
 //go:embed file/sample1.json
 var sample1Bytes []byte
 
+// パッケージスコープでのみ宣言可能
+//go:embed file/sample1.txt
+var sample1String string
+
 func TestSample1_File(t *testing.T)  {
-	sample1 := Sample1{}
-	err := json.Unmarshal(sample1Bytes, &sample1)
-	assert.NoError(t, err)
-	assert.Equal(t, Sample1{
-		Hoge: 1,
-		Fuga: "2",
-	}, sample1)
+	t.Run("[]byte", func(t *testing.T) {
+		t.Parallel()
+		sample1 := Sample1{}
+		err := json.Unmarshal(sample1Bytes, &sample1)
+		assert.NoError(t, err)
+		assert.Equal(t, Sample1{
+			Hoge: 1,
+			Fuga: "2",
+		}, sample1)
+	})
+
+	t.Run("string", func(t *testing.T) {
+		t.Parallel()
+		assert.Equal(t, "hoge fuga", sample1String)
+	})
 }
 
 //go:embed file/*
@@ -39,6 +51,7 @@ var sample1FileJson embed.FS
 func TestSample1_Dir(t *testing.T)  {
 	t.Run("ファイルを参照する", func(t *testing.T) {
 		t.Run("ディレクトリから指定する必要がある", func(t *testing.T) {
+			t.Parallel()
 			sb, err := sample1File.ReadFile("file/sample1.json")
 			assert.NoError(t, err)
 
@@ -52,6 +65,7 @@ func TestSample1_Dir(t *testing.T)  {
 		})
 
 		t.Run("ディレクトリを省略する", func(t *testing.T) {
+			t.Parallel()
 			fileDir, err := fs.Sub(sample1File, "file")
 			assert.NoError(t, err)
 
@@ -70,6 +84,7 @@ func TestSample1_Dir(t *testing.T)  {
 
 	t.Run("ディレクトリを参照する", func(t *testing.T) {
 		t.Run("全ファイル", func(t *testing.T) {
+			t.Parallel()
 			entries, err := sample1File.ReadDir("file")
 			assert.NoError(t, err)
 
@@ -81,6 +96,7 @@ func TestSample1_Dir(t *testing.T)  {
 		})
 
 		t.Run("jsonのみ", func(t *testing.T) {
+			t.Parallel()
 			entries, err := sample1FileJson.ReadDir("file")
 			assert.NoError(t, err)
 
